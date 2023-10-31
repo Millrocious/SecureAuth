@@ -1,0 +1,9 @@
+flask_sqlalchemy
+wtforms~=3.1.0
+flask~=3.0.0
+flask_bcrypt
+flask_moment
+pytz
+twilio
+flask_login
+email_validator

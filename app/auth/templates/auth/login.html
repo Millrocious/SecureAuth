@@ -1,0 +1,27 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+
+{% from "_render_field.html" import render_field %}
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('auth.static', filename='style.css') }}">
+
+<div class="container p-5 mt-5 mb-5 bg-light border border-3 rounded-4 box-form">
+  <div class="row">
+    <div class="col">
+      <h1>Login</h1>
+      <hr>
+        <form action="{{url_for('auth.login')}}" method="POST">
+            {{ form.hidden_tag() }}
+            {% for field in form if field not in [form.submit, form.remember, form.hidden_tag, form.csrf_token, form.recaptcha] %}
+              {{render_field(field, class="form-control form-cntr")}}
+            {% endfor %}
+            <div class="recaptcha">{{ render_field(form.recaptcha) }}</div>
+            <button class="submit-button sbm-btn" type="submit">{{ form.submit.label }}</button>
+        </form>
+    </div>
+  </div>
+
+</div>
+
+{% endblock content %}
