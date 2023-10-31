@@ -38,35 +38,40 @@ def login():
         if form.validate_on_submit():
             user = db.session.query(User).filter_by(email=form.email.data).first()
 
-            from pytz import utc
-            now = datetime.now(utc)
+            if user and user.email == form.email.data:
+                from pytz import utc
+                now = datetime.now(utc)
 
-            failed_attempts = session.get('failed_attempts', 0)
-            last_failed_attempt = session.get('last_failed_attempt', None)
+                failed_attempts = session.get('failed_attempts', 0)
+                last_failed_attempt = session.get('last_failed_attempt', None)
 
-            if (
-                    last_failed_attempt
-                    and (now - last_failed_attempt).total_seconds() < 60  # Блокування на 1 хвилину
-            ):
-                session.pop('failed_attempts', 0)
-                flash('Account is locked. Please try again later.', category='warning')
-                return redirect(url_for('auth.login'))
-
-            if user and user.email == form.email.data and user.verify_password(form.password.data):
-                session.pop('failed_attempts', 0)
-                session.pop('last_failed_attempt', None)
-                session["user_id"] = user.id
-                return redirect(url_for('auth.send_code'))
-            else:
-                session['failed_attempts'] = failed_attempts + 1
-                flash('Login unsuccessful. Please check username and password', category='warning')
-
-                if failed_attempts >= 3:
-                    session['last_failed_attempt'] = now
-                    print(session['failed_attempts'])
-                    flash('You have exceeded the maximum login attempts. Your account is locked for 1 minute.',
-                          category='warning')
+                if (
+                        last_failed_attempt
+                        and (now - last_failed_attempt).total_seconds() < 60  # Блокування на 1 хвилину
+                ):
+                    session.pop('failed_attempts', 0)
+                    flash('Account is locked. Please try again later.', category='warning')
                     return redirect(url_for('auth.login'))
+
+                if user.verify_password(form.password.data):
+                    session.pop('failed_attempts', 0)
+                    session.pop('last_failed_attempt', None)
+                    session["user_id"] = user.id
+                    return redirect(url_for('auth.send_code'))
+                else:
+                    session['failed_attempts'] = failed_attempts + 1
+                    flash('Login unsuccessful. Please check username and password', category='warning')
+
+                    if failed_attempts >= 10:
+                        session['last_failed_attempt'] = now
+                        print(session['failed_attempts'])
+                        flash('You have exceeded the maximum login attempts. Your account is locked for 1 minute.',
+                              category='warning')
+                        return redirect(url_for('auth.login'))
+
+            else:
+                flash('User does not exist, please register your account', category='warning')
+                return redirect(url_for('auth.register'))
 
     return render_template('login.html', form=form)
 
